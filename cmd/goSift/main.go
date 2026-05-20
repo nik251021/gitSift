@@ -15,9 +15,10 @@ func main() {
 	godotenv.Load()
 
 	commands := map[string]CommandHandler{
-		"help":      handlers.HelpHandler,
-		"getAPIkey": handlers.GetApiKeyHandler,
-		"setAPIkey": handlers.SetApiKeyHandler,
+		"help":                 handlers.HelpHandler,
+		"getAPIkey":            handlers.GetApiKeyHandler,
+		"setAPIkey":            handlers.SetApiKeyHandler,
+		"setCurrentLinkToRepo": handlers.SetCurrentRepoHandler,
 	}
 	if len(os.Args) < 2 {
 		fmt.Println("Please, enter any arguments, or use goSift help")
