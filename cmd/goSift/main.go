@@ -19,6 +19,7 @@ func main() {
 		"getAPIkey":            handlers.GetApiKeyHandler,
 		"setAPIkey":            handlers.SetApiKeyHandler,
 		"setCurrentLinkToRepo": handlers.SetCurrentRepoHandler,
+		"getCurrentLinkToRepo": handlers.GetCurrentRepoHandler,
 	}
 	if len(os.Args) < 2 {
 		fmt.Println("Please, enter any arguments, or use goSift help")
