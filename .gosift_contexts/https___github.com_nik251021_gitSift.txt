@@ -1,46 +1,45 @@
-**Название проекта:** goSift (репозиторий `gitSift`)
+**Проект:** `goSift` (репозиторий `gitSift`)
 
-**Назначение:** CLI-утилита на Go для автоматической генерации подробных, но сжатых технических справок (контекстов) по Git-репозиториям, используя Google Gemini API. Предназначена для быстрого получения обзора проекта и его ключевых характеристик.
+**Назначение:** CLI-утилита на Go для автоматической генерации подробных, но сжатых технических справок (контекстов) по Git-репозиториям, используя Google Gemini API. Предназначена для быстрого обзора проекта и его ключевых характеристик.
 
-**Стек технологий:**
-*   **Язык:** Go (версия 1.26.2+)
-*   **Зависимости:** `github.com/joho/godotenv` (для работы с `.env`)
-*   **Внешние сервисы:** Google Gemini API (generativelanguage.googleapis.com)
+**Стек Технологий:**
+*   **Язык:** Go (1.26.2+)
+*   **Зависимости:** `github.com/joho/godotenv` (для `.env`)
+*   **Внешние сервисы:** Google Gemini API (`generativelanguage.googleapis.com`)
 
-**Основные компоненты/команды CLI:**
-1.  **`goSift sift <repoURL>`**: Главная команда. Выполняет полный цикл анализа: клонирует репозиторий, собирает его файлы, отправляет их в Gemini API и сохраняет полученную справку.
-2.  **`goSift createContext <repoURL> <repoCode>`**: (Внутренняя/вспомогательная) Отправляет предоставленный код репозитория в Gemini API и сохраняет ответ как контекст.
-3.  **`goSift setAPIkey <key>`**: Сохраняет API ключ Gemini в файл `.env`.
-4.  **`goSift getAPIkey`**: Выводит текущий API ключ из `.env`.
-5.  **`goSift setCurrentLinkToRepo <url>`**: Сохраняет URL репозитория в `.env` (использование этой переменной не обнаружено в текущей логике `sift`, но доступно через CLI).
-6.  **`goSift getCurrentLinkToRepo`**: Выводит текущий URL репозитория из `.env`.
-7.  **`goSift help`**: Отображает справку по командам.
+**Основные Команды CLI:**
+1.  **`goSift sift <repoURL>`**: Главная команда. Клонирует репозиторий, собирает файлы, отправляет в Gemini API, сохраняет справку.
+2.  **`goSift createContext <repoURL> <repoCode>`**: (Внутренняя/вспомогательная) Отправляет предоставленный код в Gemini API, сохраняет ответ.
+3.  **`goSift setAPIkey <key>`**: Сохраняет API ключ Gemini в `.env`.
+4.  **`goSift getAPIkey`**: Выводит текущий API ключ.
+5.  **`goSift setCurrentLinkToRepo <url>`**: Сохраняет URL репозитория в `.env`.
+6.  **`goSift getCurrentLinkToRepo`**: Выводит текущий URL репозитория.
+7.  **`goSift help`**: Отображает справку.
 
-**Рабочий процесс команды `sift`:**
+**Рабочий Процесс `sift`:**
 1.  Принимает URL репозитория.
-2.  Использует `GetRepoFiles` для:
-    *   Клонирования репозитория по указанному URL с глубиной `1` (`git clone --depth 1`).
-    *   Перечисления файлов репозитория (`git ls-files`).
-    *   Чтения содержимого каждого файла (за исключением `.env` и `.sum` файлов).
-    *   Формирования единой строки, содержащей структурированный слепок репозитория (формат: `--- File: <path> ---\n```\n<content>\n```\n`).
-3.  Передает полученный слепок (`repoCode`) и URL в `CreateContext`.
-4.  `CreateContext`:
+2.  **`GetRepoFiles`**:
+    *   Клонирует репозиторий (`git clone --depth 1`).
+    *   Перечисляет файлы (`git ls-files`).
+    *   Читает содержимое файлов (кроме `.env`, `.sum`).
+    *   Формирует единую строку-слепок (`--- File: <path> ---\n```\n<content>\n```\n`).
+3.  **`CreateContext`**:
     *   Получает `AGENT_API_KEY` из `.env`.
-    *   Формирует промпт для Gemini, включающий системную инструкцию по анализу кода и сам слепок репозитория.
+    *   Формирует промпт для Gemini с системной инструкцией и слепком репозитория.
     *   Выполняет HTTP POST запрос к Gemini API.
-    *   Парсит JSON-ответ от Gemini.
-    *   Сохраняет текст ответа AI (техническую справку) в файл по пути `.gosift_contexts/<safe_repo_filename>.txt`.
+    *   Парсит JSON-ответ.
+    *   Сохраняет текст AI-ответа в `.gosift_contexts/<safe_repo_filename>.txt`.
 
-**Структура данных/конфигурация:**
-*   `.env`: Используется для хранения `AGENT_API_KEY` и `CURRENT_REPO_LINK`.
-*   `.gosift_contexts/`: Директория для хранения сгенерированных AI справок. Имена файлов формируются на основе URL репозитория (например, `https___github.com_user_repo.txt`).
+**Структура Данных/Конфигурация:**
+*   `.env`: Хранит `AGENT_API_KEY`, `CURRENT_REPO_LINK`.
+*   `.gosift_contexts/`: Директория для кэширования сгенерированных AI справок. Имена файлов формируются из URL репозитория.
 
 **Особенности:**
-*   Использует внешний AI для интерпретации кода и генерации структурированного текста.
-*   Кэширует ответы AI локально для быстрого доступа и повторного использования.
-*   Минималистичный CLI-интерфейс для управления ключами и запуска анализа.
+*   Использование внешнего AI для автоматической интерпретации кода.
+*   Локальное кэширование AI-ответов.
+*   Минималистичный CLI для управления конфигурацией и запуска анализа.
 
-**Примеры кода (ключевые функции):**
+**Примеры Кода:**
 
 ```go
 // cmd/goSift/main.go - Точка входа и диспетчер команд
@@ -50,25 +49,23 @@ import (
 	"fmt"
 	"os"
 
-	"goSift/internal/handlers" // Импорт обработчиков команд
+	"goSift/internal/handlers"
 	"github.com/joho/godotenv"
 )
 
-// CommandHandler определяет тип функции для обработчика команды.
 type CommandHandler func(args []string) error
 
 func main() {
 	godotenv.Load() // Загрузка переменных окружения из .env
 
-	// Регистрация доступных команд и их обработчиков.
 	commands := map[string]CommandHandler{
 		"help":                 handlers.HelpHandler,
-		"getAPIkey":            handlers.GetApiKeyHandler,
+		"sift":                 handlers.SiftHandler, // Основная команда для анализа репозитория
+		"createContext":        handlers.CreateContext, // Вызывается командой sift
 		"setAPIkey":            handlers.SetApiKeyHandler,
+		"getAPIkey":            handlers.GetApiKeyHandler,
 		"setCurrentLinkToRepo": handlers.SetCurrentRepoHandler,
 		"getCurrentLinkToRepo": handlers.GetCurrentRepoHandler,
-		"createContext":        handlers.CreateContext, // Внутренняя команда, вызываемая sift
-		"sift":                 handlers.SiftHandler,    // Основная команда для анализа репозитория
 	}
 
 	if len(os.Args) < 2 {
@@ -76,10 +73,9 @@ func main() {
 		return
 	}
 
-	curcmd := os.Args[1] // Извлечение названия команды
-	args := os.Args[2:]  // Извлечение аргументов для команды
+	curcmd := os.Args[1]
+	args := os.Args[2:]
 
-	// Поиск и вызов соответствующего обработчика команды.
 	if handler, exists := commands[curcmd]; exists {
 		err := handler(args)
 		if err != nil {
@@ -116,7 +112,6 @@ func SiftHandler(args []string) error {
 	}
 
 	// 2. Генерация и сохранение AI-контекста.
-	// CreateContext ожидает repoURL и repoCode как отдельные аргументы.
 	fakeArgs := []string{repoURL, repoCode} // Формируем аргументы для CreateContext
 	err = CreateContext(fakeArgs)
 	if err != nil {
@@ -125,5 +120,69 @@ func SiftHandler(args []string) error {
 
 	fmt.Println("\n🚀 [ALL DONE] project is ready!")
 	return nil
+}
+```
+
+```go
+// internal/handlers/getRepoFiles.go - Клонирование и сбор файлов репозитория
+package handlers
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+)
+
+func GetRepoFiles(args []string) (string, error) {
+	if len(args) < 1 || args[0] == "" {
+		return "", fmt.Errorf("no repository URL provided")
+	}
+	repoURL := args[0]
+
+	tmpDir, err := os.MkdirTemp("", "gosift-") // Создание временной директории
+	if err != nil {
+		return "", fmt.Errorf("error creating temp dir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir) // Удаление временной директории при выходе
+
+	// Клонирование репозитория
+	cloneCmd := exec.Command("git", "clone", "--depth", "1", repoURL, tmpDir)
+	if err := cloneCmd.Run(); err != nil {
+		return "", fmt.Errorf("error running git clone for %s: %w", repoURL, err)
+	}
+	
+	// Получение списка файлов в репозитории
+	listCmd := exec.Command("git", "ls-files")
+	listCmd.Dir = tmpDir // Выполнение команды в директории клонированного репо
+	out, err := listCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error getting files: %w", err)
+	}
+
+	files := strings.Split(string(out), "\n")
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("=== string of repo: %s ===\n\n", repoURL))
+
+	// Чтение содержимого каждого файла и формирование слепка
+	for _, filePath := range files {
+		filePath = strings.TrimSpace(filePath)
+		if filePath == "" || filePath == ".env" || strings.HasSuffix(filePath, ".sum") {
+			continue // Игнорирование пустых строк, .env и .sum файлов
+		}
+
+		fullPath := tmpDir + "/" + filePath
+		content, err := os.ReadFile(fullPath)
+		if err != nil {
+			continue // Пропуск файлов, которые не удалось прочитать
+		}
+
+		builder.WriteString(fmt.Sprintf("--- File: %s ---\n", filePath))
+		builder.WriteString("```\n")
+		builder.Write(content)
+		builder.WriteString("\n```\n\n")
+	}
+
+	return builder.String(), nil
 }
 ```
