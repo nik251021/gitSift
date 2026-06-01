@@ -22,6 +22,6 @@ func SiftHandler(args []string) error {
 		return fmt.Errorf("failed to generate and save AI context: %w", err)
 	}
 
-	fmt.Println("\n🚀 [ALL DONE] project is ready!")
+	fmt.Println("\nproject is ready!")
 	return nil
 }
