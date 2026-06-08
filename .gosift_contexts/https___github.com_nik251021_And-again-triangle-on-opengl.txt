@@ -1,0 +1,117 @@
+**Техническая справка репозитория: `nik251021/And-again-triangle-on-opengl`**
+
+**Название проекта:** Learning (из `CMakeLists.txt`), неофициальное: "And-again-triangle-on-opengl"
+**Цель:** Обучающий проект, демонстрирующий базовое создание окна и рендеринг простого оранжевого треугольника с использованием современного OpenGL 3.3 Core Profile.
+
+**Технологический стек:**
+*   **Язык:** C++17
+*   **Графический API:** OpenGL 3.3 Core Profile
+*   **Оконная система/Контекст:** GLFW 3
+*   **Загрузчик OpenGL:** GLAD 0.1.36
+*   **Система сборки:** CMake 3.10+
+
+**Зависимости:**
+*   OpenGL Development Libraries
+*   GLFW 3 (Runtime & Development Libraries)
+
+**Архитектура кода:**
+*   `src/main.cpp`: Главный исполняемый файл приложения, содержащий логику инициализации GLFW и GLAD, настройку OpenGL контекста, определение вершинных данных, компиляцию и линковку шейдеров, а также основной цикл рендеринга.
+*   `include/glad/glad.h`, `src/glad.c`: Сгенерированный загрузчик функций OpenGL (GLAD) для версии 3.3 Core Profile.
+*   `include/KHR/khrplatform.h`: Стандартный заголовочный файл Khronos Group, определяющий базовые платформозависимые типы.
+
+**Основные шаги выполнения:**
+1.  Инициализация GLFW и создание окна с контекстом OpenGL 3.3 Core Profile.
+2.  Загрузка указателей на функции OpenGL через GLAD.
+3.  Определение вершинных данных для треугольника.
+4.  Создание и настройка Vertex Array Object (VAO) и Vertex Buffer Object (VBO) для хранения вершинных данных.
+5.  Компиляция и линковка простых GLSL-шейдеров (вершинного для позиций, фрагментного для фиксированного оранжевого цвета).
+6.  Основной цикл рендеринга, который очищает буфер цвета, активирует шейдерную программу, привязывает VAO и рисует треугольник.
+
+---
+
+**Примеры кода (ключевые функции):**
+
+**1. Инициализация GLFW и GLAD:**
+```cpp
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <iostream>
+
+int main() {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* Window = glfwCreateWindow(600,400,"Test", nullptr, nullptr);
+    if (Window == NULL) {
+        std::cout << "Cannot create window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(Window);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+    glViewport(0,0,600,400);
+    // ... остальной код ...
+}
+```
+
+**2. Настройка вершинного буфера (VBO) и вершинного массива (VAO):**
+```cpp
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f, // Нижний левый
+         0.5f, -0.5f, 0.0f, // Нижний правый
+         0.0f,  0.5f, 0.0f  // Верхний центральный
+    };
+
+    unsigned int VBO, VAO;
+    glGenVertexArrays(1, &VAO); // Генерируем VAO
+    glBindVertexArray(VAO);     // Привязываем VAO
+
+    glGenBuffers(1, &VBO);                              // Генерируем VBO
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);                 // Привязываем VBO к цели GL_ARRAY_BUFFER
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Копируем данные вершин в VBO
+
+    // Указываем OpenGL, как интерпретировать данные вершин для атрибута 0 (позиция)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0); // Включаем вершинный атрибут 0
+
+    glBindVertexArray(0); // Отвязываем VAO (хорошая практика)
+```
+
+**3. Компиляция и линковка шейдеров:**
+```cpp
+    const char *vertexShaderSource = "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "}\0";
+
+    const char *fragmentShaderSource = "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n" // Оранжевый цвет
+        "}\0";
+
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vertexShader); // Шейдеры больше не нужны после линковки
+    glDeleteShader(fragmentShader);
+```

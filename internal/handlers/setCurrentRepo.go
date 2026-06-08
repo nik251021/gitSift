@@ -14,7 +14,7 @@ func SetCurrentRepoHandler(args []string) error {
 	env, _ := godotenv.Read()
 
 	env["CURRENT_REPO_LINK"] = args[0]
-	fmt.Print("che-to", env)
+	fmt.Print("Changed current link to: ", env)
 
 	return godotenv.Write(env, ".env")
 }

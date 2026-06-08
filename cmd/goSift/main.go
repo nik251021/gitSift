@@ -12,7 +12,7 @@ import (
 type CommandHandler func(args []string) error
 
 func main() {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	commands := map[string]CommandHandler{
 		"help":                 handlers.HelpHandler,
@@ -22,22 +22,25 @@ func main() {
 		"getCurrentLinkToRepo": handlers.GetCurrentRepoHandler,
 		"createContext":        handlers.CreateContext,
 		"sift":                 handlers.SiftHandler,
+		"ask":                  handlers.AskHandler,
 	}
+
 	if len(os.Args) < 2 {
-		fmt.Println("Please, enter any arguments, or use goSift help")
+		fmt.Println("Usage error: please provide a command or run 'goSift help'")
 		return
 	}
+
 	curcmd := os.Args[1]
 	args := os.Args[2:]
 
-	if handler, exists := commands[curcmd]; exists {
-		err := handler(args)
-		if err != nil {
-			fmt.Println("Error in command", curcmd, err)
-			return
-		}
-	} else {
-		fmt.Println("Command not found", curcmd)
+	handler, exists := commands[curcmd]
+	if !exists {
+		fmt.Printf("Error: command '%s' not found\n", curcmd)
+		return
+	}
+
+	if err := handler(args); err != nil {
+		fmt.Printf("Error execution failed for command '%s': %v\n", curcmd, err)
 		return
 	}
 }
