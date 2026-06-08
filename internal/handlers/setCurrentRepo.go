@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/joho/godotenv"
 )
@@ -14,7 +13,6 @@ func SetCurrentRepoHandler(args []string) error {
 	env, _ := godotenv.Read()
 
 	env["CURRENT_REPO_LINK"] = args[0]
-	fmt.Print("Changed current link to: ", env)
 
 	return godotenv.Write(env, ".env")
 }
